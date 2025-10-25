@@ -1,0 +1,9 @@
+/* khronos/julian_to_jd.cpp */
+#include <khronos/julian_calendar.hpp>
+#include <cmath>
+namespace khronos {
+	jd_t julian_to_jd(year_t Y, month_t M, day_t D) { return julian_to_jd(Y, M, D, hour_t(12), minute_t(0), second_t(0)); }
+	jd_t julian_to_jd(year_t Y, month_t M, day_t D, hour_t h, minute_t m, second_t s) { long long y = Y; int mth = M; if (mth <= 2) { y -= 1; mth += 12; } long double day = (long double)D; long double frac = ((long double(h) * 60.0L + long double(m)) * 60.0L + long double(s)) / 86400.0L; long double jd = std::floor(365.25L * (y + 4716)) + std::floor(30.6001L * (mth + 1)) + day - 1524.5L + frac; return jd_t(jd); }
+	void jd_to_julian(jd_t JD, year_t& Y, month_t& M, day_t& D) { hour_t h; minute_t mi; second_t s; jd_to_julian(JD, Y, M, D, h, mi, s); }
+	void jd_to_julian(jd_t JD, year_t& Y, month_t& M, day_t& D, hour_t& h, minute_t& mi, second_t& s) { long double Zl = std::floor(JD + 0.5L); long double Fl = (JD + 0.5L) - Zl; long double A = Zl; long double B = A + 1524; long double C = std::floor((B - 122.1L) / 365.25L); long double Dd = std::floor(365.25L * C); long double E = std::floor((B - Dd) / 30.6001L); long double day = B - Dd - std::floor(30.6001L * E) + Fl; int month = (E < 14) ? int(E - 1) : int(E - 13); long long year = (month > 2) ? long long(C - 4716) : long long(C - 4715); long double frac = day - std::floor(day); long double totalSeconds = frac * 86400.0L; if (totalSeconds >= 86399.9995L) { totalSeconds = 0.0L; day = std::floor(day) + 1.0L; } h = hour_t(totalSeconds / 3600.0L); totalSeconds -= h * 3600.0L; mi = minute_t(totalSeconds / 60.0L); totalSeconds -= mi * 60.0L; s = second_t(totalSeconds); Y = year_t(year); M = month_t(month); D = day_t(std::floor(day)); }
+}

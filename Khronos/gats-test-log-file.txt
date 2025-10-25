@@ -1,0 +1,5 @@
+  3.0	3.0	ut004_test_Gregorian_leapyear_test
+  3.0	3.0	ut005_test_Gregorian_days_of_month
+  3.0	3.0	ut006_test_Gregorian_month_name
+
+Score = 9.0 of 9.0 (100.0%)

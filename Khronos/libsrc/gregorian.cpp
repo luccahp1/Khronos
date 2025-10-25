@@ -1,29 +1,166 @@
 /* khronos/gregorian.cpp */
+
 #include <khronos/gregorian_calendar.hpp>
-#include <khronos/timeofday.hpp>
+
 #include <khronos/calendar.hpp>
-#include <sstream>
-#include <iomanip>
-#include <ctime>
+
 #include <cmath>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+
 namespace khronos {
-	static void ymdhms_from_jd(jd_t jd, year_t& y, month_t& m, day_t& d, hour_t& h, minute_t& mi, second_t& s) { jd_to_gregorian(jd, y, m, d, h, mi, s); }
-	static jd_t jd_from_ymdhms(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s) { return gregorian_to_jd(y, m, d, h, mi, s); }
-	static day_t clamp_dom(year_t y, month_t m, day_t d) { bool leap = is_gregorian_leapyear(y); day_t dim = gregorian_days_in_month(m, leap); if (d > dim) d = dim; if (d < 1) d = 1; return d; }
-	Gregorian::Gregorian() { time_t t = time(nullptr); tm tmLocal{}; localtime_s(&tmLocal, &t); jd_ = gregorian_to_jd(year_t(tmLocal.tm_year + 1900), month_t(tmLocal.tm_mon + 1), day_t(tmLocal.tm_mday), hour_t(tmLocal.tm_hour), minute_t(tmLocal.tm_min), second_t(tmLocal.tm_sec)); }
-	Gregorian::Gregorian(now_t mode) { time_t t = time(nullptr); tm tmLocal{}; localtime_s(&tmLocal, &t); if (mode == NOTIMEOFDAY) jd_ = gregorian_to_jd(year_t(tmLocal.tm_year + 1900), month_t(tmLocal.tm_mon + 1), day_t(tmLocal.tm_mday)); else jd_ = gregorian_to_jd(year_t(tmLocal.tm_year + 1900), month_t(tmLocal.tm_mon + 1), day_t(tmLocal.tm_mday), hour_t(tmLocal.tm_hour), minute_t(tmLocal.tm_min), second_t(tmLocal.tm_sec)); }
-	Gregorian::Gregorian(year_t y, month_t m, day_t d) { jd_ = gregorian_to_jd(y, m, d); }
-	Gregorian::Gregorian(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s) { jd_ = gregorian_to_jd(y, m, d, h, mi, s); }
-	Gregorian::Gregorian(Jd jd) :jd_((jd_t)jd.jd()) {}
-	year_t Gregorian::year() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return y; }
-	month_t Gregorian::month() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return m; }
-	day_t Gregorian::day() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return d; }
-	hour_t Gregorian::hour() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return h; }
-	minute_t Gregorian::minute() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return mi; }
-	second_t Gregorian::second() const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); return s; }
-	Gregorian::operator Jd() const { return Jd(jd_); }
-	Gregorian Gregorian::operator+(months mn) const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); long long total = (long long)m - 1 + mn.v; long long newY = y + total / 12; long long newM = (total % 12 + 12) % 12 + 1; day_t newD = clamp_dom((year_t)newY, (month_t)newM, d); jd_t newjd = jd_from_ymdhms((year_t)newY, (month_t)newM, newD, h, mi, s); return Gregorian(Jd(newjd)); }
-	Gregorian Gregorian::operator+(years yr) const { year_t y; month_t m; day_t d; hour_t h; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h, mi, s); year_t newY = y + (year_t)yr.v; day_t newD = clamp_dom(newY, m, d); jd_t newjd = jd_from_ymdhms(newY, m, newD, h, mi, s); return Gregorian(Jd(newjd)); }
-	static std::string two_digits(int v) { std::ostringstream oss; oss << std::setw(2) << std::setfill('0') << v; return oss.str(); }
-	std::string Gregorian::to_string() const { year_t y; month_t m; day_t d; hour_t h24; minute_t mi; second_t s; ymdhms_from_jd(jd_, y, m, d, h24, mi, s); int w = day_of_week(jd_); static const char* wd[7] = { "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday" }; std::string mon = gregorian_month_name(m); bool bce = (y <= 0); long long disp = bce ? (1 - (long long)y) : (long long)y; int h12 = (h24 % 12); if (h12 == 0) h12 = 12; const char* ampm = (h24 < 12 ? "am" : "pm"); std::ostringstream oss; oss << wd[w] << ", " << mon << ' ' << d << ' ' << disp << (bce ? " BCE, " : " CE, ") << h12 << ":" << two_digits(mi) << ":" << two_digits(int(std::floor(s + 0.5))) << ' ' << ampm; return oss.str(); }
+
+namespace {
+
+struct GregorianFields {
+    year_t year;
+    month_t month;
+    day_t day;
+    hour_t hour;
+    minute_t minute;
+    second_t second;
+};
+
+GregorianFields split(jd_t jd) {
+    GregorianFields out{};
+    jd_to_gregorian(jd, out.year, out.month, out.day, out.hour, out.minute, out.second);
+    return out;
 }
+
+jd_t compose(year_t year, month_t month, day_t day, hour_t hour, minute_t minute, second_t second) {
+    return gregorian_to_jd(year, month, day, hour, minute, second);
+}
+
+day_t clamp_day(year_t year, month_t month, day_t day) {
+    const bool leap = is_gregorian_leapyear(year);
+    const day_t dim = gregorian_days_in_month(month, leap);
+    if (day > dim) {
+        return dim;
+    }
+    if (day < 1) {
+        return 1;
+    }
+    return day;
+}
+
+jd_t local_now(now_t mode) {
+    time_t raw = time(nullptr);
+    tm tmLocal{};
+#if defined(_WIN32)
+    localtime_s(&tmLocal, &raw);
+#else
+    localtime_r(&raw, &tmLocal);
+#endif
+    const year_t year = static_cast<year_t>(tmLocal.tm_year + 1900);
+    const month_t month = static_cast<month_t>(tmLocal.tm_mon + 1);
+    const day_t day = static_cast<day_t>(tmLocal.tm_mday);
+    if (mode == NOTIMEOFDAY) {
+        return gregorian_to_jd(year, month, day);
+    }
+    const hour_t hour = static_cast<hour_t>(tmLocal.tm_hour);
+    const minute_t minute = static_cast<minute_t>(tmLocal.tm_min);
+    const second_t second = static_cast<second_t>(tmLocal.tm_sec);
+    return gregorian_to_jd(year, month, day, hour, minute, second);
+}
+
+long long rounded_years(years delta) {
+    const long double rounded = std::llround(delta.v);
+    if (std::fabsl(delta.v - rounded) > 1e-9L) {
+        throw std::invalid_argument("Gregorian year adjustments must be integral");
+    }
+    return static_cast<long long>(rounded);
+}
+
+std::string two_digits(int value) {
+    std::ostringstream oss;
+    oss << std::setw(2) << std::setfill('0') << value;
+    return oss.str();
+}
+
+}  // namespace
+
+Gregorian::Gregorian() : jd_(local_now(WTIMEOFDAY)) {}
+
+Gregorian::Gregorian(now_t mode) : jd_(local_now(mode)) {}
+
+Gregorian::Gregorian(year_t year, month_t month, day_t day)
+    : jd_(gregorian_to_jd(year, month, day)) {}
+
+Gregorian::Gregorian(year_t year, month_t month, day_t day, hour_t hour, minute_t minute, second_t second)
+    : jd_(gregorian_to_jd(year, month, day, hour, minute, second)) {}
+
+Gregorian::Gregorian(Jd jd) : jd_(jd.jd()) {}
+
+year_t Gregorian::year() const {
+    return split(jd_).year;
+}
+
+month_t Gregorian::month() const {
+    return split(jd_).month;
+}
+
+day_t Gregorian::day() const {
+    return split(jd_).day;
+}
+
+hour_t Gregorian::hour() const {
+    return split(jd_).hour;
+}
+
+minute_t Gregorian::minute() const {
+    return split(jd_).minute;
+}
+
+second_t Gregorian::second() const {
+    return split(jd_).second;
+}
+
+Gregorian::operator Jd() const {
+    return Jd(jd_);
+}
+
+Gregorian Gregorian::operator+(months delta) const {
+    GregorianFields parts = split(jd_);
+    const long long totalMonths = static_cast<long long>(parts.month) - 1 + delta.v;
+    year_t newYear = static_cast<year_t>(parts.year + totalMonths / 12);
+    month_t newMonth = static_cast<month_t>((totalMonths % 12 + 12) % 12 + 1);
+    const day_t newDay = clamp_day(newYear, newMonth, parts.day);
+    const jd_t newJd = compose(newYear, newMonth, newDay, parts.hour, parts.minute, parts.second);
+    return Gregorian(Jd(newJd));
+}
+
+Gregorian Gregorian::operator+(years delta) const {
+    GregorianFields parts = split(jd_);
+    const long long wholeYears = rounded_years(delta);
+    year_t newYear = static_cast<year_t>(parts.year + wholeYears);
+    const day_t newDay = clamp_day(newYear, parts.month, parts.day);
+    const jd_t newJd = compose(newYear, parts.month, newDay, parts.hour, parts.minute, parts.second);
+    return Gregorian(Jd(newJd));
+}
+
+std::string Gregorian::to_string() const {
+    const GregorianFields parts = split(jd_);
+    const int weekday = day_of_week(jd_);
+    static const char* const weekNames[7] = {
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+    const std::string monthName = gregorian_month_name(parts.month);
+    const bool isBce = parts.year <= 0;
+    const long long displayYear = isBce ? 1 - static_cast<long long>(parts.year) : static_cast<long long>(parts.year);
+    int hour12 = parts.hour % 12;
+    if (hour12 == 0) {
+        hour12 = 12;
+    }
+    const char* const ampm = parts.hour < 12 ? "am" : "pm";
+    const int roundedSeconds = static_cast<int>(std::floor(parts.second + 0.5));
+
+    std::ostringstream oss;
+    oss << weekNames[weekday] << ", " << monthName << ' ' << parts.day << ' ' << displayYear
+        << (isBce ? " BCE, " : " CE, ") << hour12 << ':' << two_digits(parts.minute) << ':'
+        << two_digits(roundedSeconds) << ' ' << ampm;
+    return oss.str();
+}
+
+}  // namespace khronos
+

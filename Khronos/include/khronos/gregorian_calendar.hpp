@@ -7,16 +7,13 @@
 #include <compare>
 #include <ostream>
 namespace khronos {
-	jd_t gregorian_to_jd(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s);
-	jd_t gregorian_to_jd(year_t y, month_t m, day_t d);
-	void jd_to_gregorian(jd_t jd, year_t& y, month_t& m, day_t& d, hour_t& h, minute_t& mi, second_t& s);
+        jd_t gregorian_to_jd(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s);
+        jd_t gregorian_to_jd(year_t y, month_t m, day_t d);
+        void jd_to_gregorian(jd_t jd, year_t& y, month_t& m, day_t& d);
+        void jd_to_gregorian(jd_t jd, year_t& y, month_t& m, day_t& d, hour_t& h, minute_t& mi, second_t& s);
 
 
-	struct months { long long v; explicit months(long long n) :v(n) {} };
-	inline months months_(long long n) { return months(n); } inline months months(long long n) { return months(n); }
-
-
-	class Gregorian {
+        class Gregorian {
 	public:
 		Gregorian(); explicit Gregorian(now_t mode);
 		Gregorian(year_t y, month_t m, day_t d); Gregorian(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s);

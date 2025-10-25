@@ -31,8 +31,7 @@ namespace khronos {
 		Julian operator+(hours h)const { return Julian(Jd(jd_) + h); } Julian operator-(hours h)const { return Julian(Jd(jd_) - h); }
 		Julian operator+(minutes m)const { return Julian(Jd(jd_) + m); } Julian operator-(minutes m)const { return Julian(Jd(jd_) - m); }
 		Julian operator+(seconds s)const { return Julian(Jd(jd_) + s); } Julian operator-(seconds s)const { return Julian(Jd(jd_) - s); }
-		struct months { long long v; explicit months(long long n) :v(n) {} }; friend inline months months(long long n) { return months(n); }
-		Julian operator+(months mm) const; Julian operator-(months mm) const { return *this + months(-mm.v); }
+                Julian operator+(months mm) const; Julian operator-(months mm) const { return *this + months(-mm.v); }
 		Julian operator+(years yy) const; Julian operator-(years yy) const { return *this + years(-yy.v); }
 		long double operator-(const Julian& rhs) const { return long double(jd_ - rhs.jd_); }
 		std::string to_string() const;

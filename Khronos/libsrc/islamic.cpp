@@ -1,8 +1,8 @@
 /* khronos/islamic.cpp */
 
 #include <khronos/islamic_calendar.hpp>
-
 #include <khronos/calendar.hpp>
+#include <khronos/gregorian_calendar.hpp>
 
 #include <cmath>
 #include <ctime>

@@ -1,6 +1,7 @@
 /* khronos/hebrew_to_jd.cpp */
 #include <khronos/hebrew_calendar.hpp>
 #include <cmath>
+
 namespace khronos {
 	static constexpr long double HEBREW_EPOCH = 347995.5L;
 	static inline bool hebrew_leap(year_t y) { return ((7 * y + 1) % 19) < 7; }
@@ -9,6 +10,21 @@ namespace khronos {
 	static int hebrew_year_days(year_t y) { return int(rosh_hashana(y + 1) - rosh_hashana(y)); }
 	static int hebrew_months_in_year(year_t y) { return hebrew_leap(y) ? 13 : 12; }
 	static int hebrew_last_day_of_month(year_t y, month_t m) { bool leap = hebrew_leap(y); if (m == 2 || m == 4 || m == 6 || m == 10 || m == 13) return 29; if (m == 12 && !leap) return 29; int yearDays = hebrew_year_days(y); if (m == 8) return (yearDays % 10 == 5 || yearDays % 10 == 3) ? 30 : 29; if (m == 9) return (yearDays % 10 == 5) ? 29 : 30; return 30; }
+
+	// --------------------------------------------------------------------
+	// Missing month-name implementation — fixes LNK2019 for hebrew_month_name
+	// --------------------------------------------------------------------
+	std::string hebrew_month_name(month_t month) {
+	    static const char* const names[14] = {
+	        "", "Nisan", "Iyyar", "Sivan", "Tammuz", "Av", "Elul",
+	        "Tishri", "Heshvan", "Kislev", "Teveth", "Shevat", "Adar", "Veadar"
+	    };
+	    if (month < 1 || month > 13) {
+	        return "";
+	    }
+	    return names[month];
+	}
+
 	jd_t hebrew_to_jd(year_t y, month_t m, day_t d) { return hebrew_to_jd(y, m, d, hour_t(12), minute_t(0), second_t(0)); }
 	jd_t hebrew_to_jd(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s) { long double jd = rosh_hashana(y); int mm = 7; while (mm != m) { jd += hebrew_last_day_of_month(y, (month_t)mm); mm = (mm == 13 ? 1 : mm + 1); } jd += (d - 1); long double frac = ((long double(h) * 60.0L + long double(mi)) * 60.0L + long double(s)) / 86400.0L; return jd_t(jd + frac); }
 	void jd_to_hebrew(jd_t JD, year_t& y, month_t& m, day_t& d) { hour_t h; minute_t mi; second_t s; jd_to_hebrew(JD, y, m, d, h, mi, s); }

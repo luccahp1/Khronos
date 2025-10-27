@@ -67,7 +67,7 @@
 #define PHASE_36 true
 #define PHASE_37 true
 #define PHASE_38 true
-#define PHASE_39 false
+#define PHASE_39 true
 
 #define PHASE_40 true
 #define PHASE_41 true
@@ -95,12 +95,12 @@
 #define PHASE_61 true
 #define PHASE_62 true
 #define PHASE_63 true
-#define PHASE_64 false
-#define PHASE_65 false
-#define PHASE_66 false
-#define PHASE_67 false
-#define PHASE_68 false
-#define PHASE_69 false
+#define PHASE_64 true
+#define PHASE_65 true
+#define PHASE_66 true
+#define PHASE_67 true
+#define PHASE_68 true
+#define PHASE_69 true
 
 #define PHASE_70 true
 #define PHASE_71 true
@@ -122,40 +122,40 @@
 #define PHASE_86 true
 #define PHASE_87 true
 #define PHASE_88 true
-#define PHASE_89 false
+#define PHASE_89 true
 
-#define PHASE_90 false
-#define PHASE_91 false
-#define PHASE_92 false
-#define PHASE_93 false
-#define PHASE_94 false
-#define PHASE_95 false
-#define PHASE_96 false
-#define PHASE_97 false
-#define PHASE_98 false
-#define PHASE_99 false
+#define PHASE_90 true
+#define PHASE_91 true
+#define PHASE_92 true
+#define PHASE_93 true
+#define PHASE_94 true
+#define PHASE_95 true
+#define PHASE_96 true
+#define PHASE_97 true
+#define PHASE_98 true
+#define PHASE_99 true
 
-#define PHASE_100 false
-#define PHASE_101 false
-#define PHASE_102 false
-#define PHASE_103 false
-#define PHASE_104 false
-#define PHASE_105 false
-#define PHASE_106 false
-#define PHASE_107 false
-#define PHASE_108 false
-#define PHASE_109 false
+#define PHASE_100 true
+#define PHASE_101 true
+#define PHASE_102 true
+#define PHASE_103 true
+#define PHASE_104 true
+#define PHASE_105 true
+#define PHASE_106 true
+#define PHASE_107 true
+#define PHASE_108 true
+#define PHASE_109 true
 
-#define PHASE_110 false
-#define PHASE_111 false
-#define PHASE_112 false
-#define PHASE_113 false
-#define PHASE_114 false
-#define PHASE_115 false
-#define PHASE_116 false
-#define PHASE_117 false
-#define PHASE_118 false
-#define PHASE_119 false
+#define PHASE_110 true
+#define PHASE_111 true
+#define PHASE_112 true
+#define PHASE_113 true
+#define PHASE_114 true
+#define PHASE_115 true
+#define PHASE_116 true
+#define PHASE_117 true
+#define PHASE_118 true
+#define PHASE_119 true
 
 
 

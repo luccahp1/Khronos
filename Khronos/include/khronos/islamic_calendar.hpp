@@ -20,8 +20,9 @@ namespace khronos {
         void jd_to_islamic(jd_t jd, year_t& y, month_t& m, day_t& d, hour_t& h, minute_t& mi, second_t& s);
         class Islamic {
         public:
-                Islamic(); explicit Islamic(now_t mode);
-                Islamic(year_t y, month_t m, day_t d); Islamic(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s); explicit Islamic(Jd jd);
+		Islamic(); explicit Islamic(now_t mode);
+		Islamic(year_t y, month_t m, day_t d); Islamic(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s); explicit Islamic(Jd jd);
+		Islamic& operator=(Jd jd);
                 year_t year() const; month_t month() const; day_t day() const; hour_t hour() const; minute_t minute() const; second_t second() const;
                 operator Jd() const; auto operator<=>(const Islamic& r) const { return jd_ <=> r.jd_; } bool operator==(const Islamic& r) const { return jd_ == r.jd_; }
                 Islamic operator+(days d)const { return Islamic(Jd(jd_) + d); } Islamic operator-(days d)const { return Islamic(Jd(jd_) - d); }

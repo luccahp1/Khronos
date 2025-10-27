@@ -18,6 +18,7 @@ namespace khronos {
 		Gregorian(); explicit Gregorian(now_t mode);
 		Gregorian(year_t y, month_t m, day_t d); Gregorian(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s);
 		explicit Gregorian(Jd jd);
+		Gregorian& operator=(Jd jd);
 		year_t year() const; month_t month() const; day_t day() const; hour_t hour() const; minute_t minute() const; second_t second() const;
 		operator Jd() const;
 		auto operator<=>(const Gregorian& rhs) const { return jd_ <=> rhs.jd_; } bool operator==(const Gregorian& rhs) const { return jd_ == rhs.jd_; }

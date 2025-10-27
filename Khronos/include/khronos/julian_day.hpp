@@ -3,7 +3,6 @@
 
 #include <khronos/def.hpp>
 #include <khronos/timeofday.hpp>
-#include <khronos/gregorian_calendar.hpp>
 
 #include <compare>
 #include <ostream>

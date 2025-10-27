@@ -1,6 +1,7 @@
 /* khronos/jd.cpp */
 
 #include <khronos/julian_day.hpp>
+#include <khronos/gregorian_calendar.hpp>
 
 #include <cmath>
 #include <ctime>

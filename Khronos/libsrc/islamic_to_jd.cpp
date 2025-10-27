@@ -1,16 +1,110 @@
-/* khronos/islamic_to_jd.cpp (tabular Islamic) */
+/* khronos/islamic_to_jd.cpp */
+
 #include <khronos/islamic_calendar.hpp>
+
 #include <cmath>
+
 namespace khronos {
-	static constexpr long double ISLAMIC_EPOCH = 1948439.5L;
-	static inline long double islamic_month_start(year_t y, month_t m) { long double months = std::ceil(29.5L * (m - 1)); long double days = (y - 1) * 354.0L + std::floor((3 + 11 * y) / 30.0L); return months + days; }
-	jd_t islamic_to_jd(year_t y, month_t m, day_t d) { return islamic_to_jd(y, m, d, hour_t(12), minute_t(0), second_t(0)); }
-	jd_t islamic_to_jd(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s) { long double n = islamic_month_start(y, m) + (long double)d - 1.0L; long double frac = ((long double(h) * 60.0L + long double(mi)) * 60.0L + long double(s)) / 86400.0L; return jd_t(ISLAMIC_EPOCH + n + frac); }
-	void jd_to_islamic(jd_t JD, year_t& y, month_t& m, day_t& d) { hour_t h; minute_t mi; second_t s; jd_to_islamic(JD, y, m, d, h, mi, s); }
-	void jd_to_islamic(jd_t JD, year_t& y, month_t& m, day_t& d, hour_t& h, minute_t& mi, second_t& s) {
-		long double j = std::floor(JD) + 0.0L; long double days = j - ISLAMIC_EPOCH + 0.0L; year_t yy = (year_t)std::floor((30.0L * days + 10646.0L) / 10631.0L); year_t y1 = yy; long double m1 = std::ceil((days - ((y1 - 1) * 354.0L + std::floor((3 + 11 * y1) / 30.0L)) + 1.0L) / 29.5L); if (m1 < 1) m1 = 1; if (m1 > 12) m1 = 12; month_t mm = (month_t)m1; long double start = islamic_month_start(y1, mm); long double day = days - start + 1.0L; if (day < 1) { mm = (month_t)(mm - 1); if (mm < 1) { mm = 12; y1 -= 1; } start = islamic_month_start(y1, mm); day = days - start + 1.0L; }
-		long double frac = (long double)JD - std::floor((long double)JD);
-		long double totalSeconds = frac * 86400.0L; h = hour_t(totalSeconds / 3600.0L); totalSeconds -= h * 3600.0L; mi = minute_t(totalSeconds / 60.0L); totalSeconds -= mi * 60.0L; s = second_t(totalSeconds);
-		y = y1; m = mm; d = day_t((int)std::floor(day));
-	}
+
+namespace {
+
+constexpr long double ISLAMIC_EPOCH = 1948439.5L;
+
+long double months_elapsed(month_t month) {
+    return std::ceil(29.5L * (static_cast<long double>(month) - 1.0L));
 }
+
+}  // namespace
+
+day_t islamic_days_in_month(year_t year, month_t month) {
+    static const day_t base[12] = {30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29};
+    if (month < 1 || month > 12) {
+        return 29;
+    }
+    day_t length = base[month - 1];
+    if (month == 12 && is_islamic_leapyear(year)) {
+        length = 30;
+    }
+    return length;
+}
+
+std::string islamic_month_name(month_t month) {
+    static const char* const names[13] = {
+        "", "Muharram", "Safar", "Rabi'al-Awwal", "Rabi'ath-Thani", "Jumada I-Ula",
+        "Jumada t-Tania", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu I-Qa'da", "Dhu I-Hijja"};
+    if (month < 1 || month > 12) {
+        return "";
+    }
+    return names[month];
+}
+
+jd_t islamic_to_jd(year_t year, month_t month, day_t day) {
+    return islamic_to_jd(year, month, day, hour_t(12), minute_t(0), second_t(0));
+}
+
+jd_t islamic_to_jd(year_t year, month_t month, day_t day, hour_t hour, minute_t minute, second_t second) {
+    const long double yearPart = (static_cast<long double>(year) - 1.0L) * 354.0L;
+    const long double leapDays = std::floor((3.0L + 11.0L * static_cast<long double>(year)) / 30.0L);
+    const long double monthPart = months_elapsed(month);
+    const long double jd = static_cast<long double>(day) + monthPart + yearPart + leapDays + ISLAMIC_EPOCH - 1.0L;
+    return jd_t(jd + static_cast<long double>(hms_to_days(hour, minute, second)));
+}
+
+void jd_to_islamic(jd_t jd, year_t& year, month_t& month, day_t& day) {
+    hour_t hour;
+    minute_t minute;
+    second_t second;
+    jd_to_islamic(jd, year, month, day, hour, minute, second);
+}
+
+void jd_to_islamic(jd_t jd, year_t& year, month_t& month, day_t& day, hour_t& hour, minute_t& minute, second_t& second) {
+    const long double fraction = jd_day_fraction(jd);
+    hour_t h = 0;
+    minute_t mi = 0;
+    second_t s = 0;
+    int carry = jd_to_hms(fraction, h, mi, s);
+
+    long double dayPortion = static_cast<long double>(hms_to_days(h, mi, s));
+    long double jdDate = static_cast<long double>(jd) - dayPortion;
+    if (carry == 1) {
+        jdDate += 1.0L;
+        h = 0;
+        mi = 0;
+        s = 0;
+    } else if (carry == -1) {
+        jdDate -= 1.0L;
+        h = 23;
+        mi = 59;
+        s = 59;
+    }
+
+    const long double jdFloor = std::floor(jdDate);
+    const long double yearCalc = std::floor((30.0L * (jdFloor - ISLAMIC_EPOCH) + 10646.0L) / 10631.0L);
+    year_t islamicYear = static_cast<year_t>(yearCalc);
+
+    const long double firstOfYear = static_cast<long double>(islamic_to_jd(islamicYear, 1, 1));
+    long double monthCalc = std::ceil((jdDate - firstOfYear) / 29.5L) + 1.0L;
+    if (monthCalc < 1.0L) {
+        monthCalc = 1.0L;
+    }
+    if (monthCalc > 12.0L) {
+        monthCalc = 12.0L;
+    }
+    month_t islamicMonth = static_cast<month_t>(monthCalc);
+
+    const long double firstOfMonth = static_cast<long double>(islamic_to_jd(islamicYear, islamicMonth, 1));
+    day_t islamicDay = static_cast<day_t>(std::floor(jdDate - firstOfMonth + 1.0L));
+    if (islamicDay < 1) {
+        islamicDay = 1;
+    }
+
+    year = islamicYear;
+    month = islamicMonth;
+    day = islamicDay;
+    hour = h;
+    minute = mi;
+    second = s;
+}
+
+}  // namespace khronos
+

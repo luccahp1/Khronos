@@ -23,6 +23,7 @@ namespace khronos {
 	public:
 		Julian(); explicit Julian(now_t mode);
 		Julian(year_t y, month_t m, day_t d); Julian(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s); explicit Julian(Jd jd);
+		Julian& operator=(Jd jd);
 		year_t year() const; month_t month() const; day_t day() const; hour_t hour() const; minute_t minute() const; second_t second() const;
 		operator Jd() const;
 		auto operator<=>(const Julian& r) const { return jd_ <=> r.jd_; } bool operator==(const Julian& r) const { return jd_ == r.jd_; }

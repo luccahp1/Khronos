@@ -15,6 +15,7 @@ namespace khronos {
 	public:
 		Vulcan(); explicit Vulcan(now_t mode);
 		Vulcan(year_t y, month_t m, day_t d); Vulcan(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s); explicit Vulcan(Jd jd);
+		Vulcan& operator=(Jd jd) { jd_ = jd.jd(); return *this; }
 		year_t year() const; month_t month() const; day_t day() const; hour_t hour() const; minute_t minute() const; second_t second() const;
 		operator Jd() const; auto operator<=>(const Vulcan& r) const { return jd_ <=> r.jd_; } bool operator==(const Vulcan& r) const { return jd_ == r.jd_; }
 		Vulcan operator+(days d)const { return Vulcan(Jd(jd_) + d); } Vulcan operator-(days d)const { return Vulcan(Jd(jd_) - d); }

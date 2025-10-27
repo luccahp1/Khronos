@@ -66,11 +66,11 @@ jd_t local_now(now_t mode) {
 }
 
 long long rounded_years(years delta) {
-    const long double rounded = std::llround(delta.v);
-    if (std::fabsl(delta.v - rounded) > 1e-9L) {
+    const long long rounded = std::llround(delta.v);
+    if (std::fabsl(delta.v - static_cast<long double>(rounded)) > 1e-9L) {
         throw std::invalid_argument("Gregorian year adjustments must be integral");
     }
-    return static_cast<long long>(rounded);
+    return rounded;
 }
 
 std::string two_digits(int value) {
@@ -92,6 +92,11 @@ Gregorian::Gregorian(year_t year, month_t month, day_t day, hour_t hour, minute_
     : jd_(gregorian_to_jd(year, month, day, hour, minute, second)) {}
 
 Gregorian::Gregorian(Jd jd) : jd_(jd.jd()) {}
+
+Gregorian& Gregorian::operator=(Jd jd) {
+    jd_ = jd.jd();
+    return *this;
+}
 
 year_t Gregorian::year() const {
     return split(jd_).year;

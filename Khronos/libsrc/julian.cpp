@@ -65,11 +65,11 @@ jd_t local_now(now_t mode) {
 }
 
 long long rounded_years(years delta) {
-    const long double rounded = std::llround(delta.v);
-    if (std::fabsl(delta.v - rounded) > 1e-9L) {
+    const long long rounded = std::llround(delta.v);
+    if (std::fabsl(delta.v - static_cast<long double>(rounded)) > 1e-9L) {
         throw std::invalid_argument("Julian year adjustments must be integral");
     }
-    return static_cast<long long>(rounded);
+    return rounded;
 }
 
 std::string two_digits(int value) {
@@ -90,6 +90,11 @@ Julian::Julian(year_t year, month_t month, day_t day, hour_t hour, minute_t minu
     : jd_(julian_to_jd(year, month, day, hour, minute, second)) {}
 
 Julian::Julian(Jd jd) : jd_(jd.jd()) {}
+
+Julian& Julian::operator=(Jd jd) {
+    jd_ = jd.jd();
+    return *this;
+}
 
 year_t Julian::year() const {
     return split(jd_).year;

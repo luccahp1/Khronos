@@ -71,11 +71,11 @@ std::string two_digits(int value) {
 }
 
 long long rounded_years(years delta) {
-    const long double rounded = std::llround(delta.v);
-    if (std::fabsl(delta.v - rounded) > 1e-9L) {
+    const long long rounded = std::llround(delta.v);
+    if (std::fabsl(delta.v - static_cast<long double>(rounded)) > 1e-9L) {
         throw std::invalid_argument("Islamic year adjustments must be integral");
     }
-    return static_cast<long long>(rounded);
+    return rounded;
 }
 
 }  // namespace
@@ -90,6 +90,11 @@ Islamic::Islamic(year_t year, month_t month, day_t day, hour_t hour, minute_t mi
     : jd_(islamic_to_jd(year, month, day, hour, minute, second)) {}
 
 Islamic::Islamic(Jd jd) : jd_(jd.jd()) {}
+
+Islamic& Islamic::operator=(Jd jd) {
+    jd_ = jd.jd();
+    return *this;
+}
 
 year_t Islamic::year() const {
     return split(jd_).year;

@@ -16,6 +16,7 @@ namespace khronos {
 	public:
 		Hebrew(); explicit Hebrew(now_t mode);
 		Hebrew(year_t y, month_t m, day_t d); Hebrew(year_t y, month_t m, day_t d, hour_t h, minute_t mi, second_t s); explicit Hebrew(Jd jd);
+		Hebrew& operator=(Jd jd);
 		year_t year() const; month_t month() const; day_t day() const; hour_t hour() const; minute_t minute() const; second_t second() const;
 		operator Jd() const; auto operator<=>(const Hebrew& r) const { return jd_ <=> r.jd_; } bool operator==(const Hebrew& r) const { return jd_ == r.jd_; }
 		Hebrew operator+(days d)const { return Hebrew(Jd(jd_) + d); } Hebrew operator-(days d)const { return Hebrew(Jd(jd_) - d); }
